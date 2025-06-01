@@ -1,0 +1,200 @@
+[
+    {
+        "id": "0c4a26f49b5eba74",
+        "type": "tab",
+        "label": "Monitoramento ESP32",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "52da70e676f93f2f",
+        "type": "mqtt in",
+        "z": "0c4a26f49b5eba74",
+        "name": "Recebe dados ESP32",
+        "topic": "TESTMACK1870/+/+",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "a88e9b92f8dbdd0d",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 360,
+        "y": 240,
+        "wires": [
+            [
+                "c2bb0559d6532016"
+            ]
+        ]
+    },
+    {
+        "id": "c2bb0559d6532016",
+        "type": "function",
+        "z": "0c4a26f49b5eba74",
+        "name": "Extrair e formatar dados",
+        "func": "let dados = (typeof msg.payload === \"string\") ? JSON.parse(msg.payload) : msg.payload;\n\nlet estacao = dados.estacao || \"estacao1\";\nlet rota = dados.rota || \"rota-desconhecida\";\n\n// Criar duas mensagens: uma para distância, uma para passagens\nlet msgDistancia = {\n  measurement: \"distancia\",\n  payload: {\n    value: parseFloat(dados.distancia)\n  },\n  tags: {\n    estacao: estacao,\n    rota: rota\n  }\n};\n\nlet msgPassagens = {\n  measurement: \"passagens\",\n  payload: {\n    value: parseInt(dados.passagens)\n  },\n  tags: {\n    estacao: estacao,\n    rota: rota\n  }\n};\n\n// Retorna como array para dois outputs\nreturn [msgDistancia, msgPassagens];\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 620,
+        "y": 240,
+        "wires": [
+            [
+                "7253931eb05e2308"
+            ]
+        ]
+    },
+    {
+        "id": "7253931eb05e2308",
+        "type": "switch",
+        "z": "0c4a26f49b5eba74",
+        "name": "Separar por tipo",
+        "property": "measurement",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "distancia",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "passagens",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 870,
+        "y": 240,
+        "wires": [
+            [
+                "557b69a42fe3ac51",
+                "0a3ee7b43b30f090"
+            ],
+            [
+                "226cbe51e845764d",
+                "44477de7f9757329"
+            ]
+        ]
+    },
+    {
+        "id": "557b69a42fe3ac51",
+        "type": "debug",
+        "z": "0c4a26f49b5eba74",
+        "name": "Debug Distância",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1130,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "226cbe51e845764d",
+        "type": "debug",
+        "z": "0c4a26f49b5eba74",
+        "name": "Debug Passagens",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1130,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "0a3ee7b43b30f090",
+        "type": "influxdb out",
+        "z": "0c4a26f49b5eba74",
+        "influxdb": "a1influxserver",
+        "name": "Distancia",
+        "measurement": "",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "Mackenzie",
+        "bucket": "Projeto",
+        "x": 1130,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "44477de7f9757329",
+        "type": "influxdb out",
+        "z": "0c4a26f49b5eba74",
+        "influxdb": "a1influxserver",
+        "name": "Passagens",
+        "measurement": "",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "Mackenzie",
+        "bucket": "Projeto",
+        "x": 1130,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "a88e9b92f8dbdd0d",
+        "type": "mqtt-broker",
+        "name": "HiveMQ",
+        "broker": "broker.hivemq.com",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "a1influxserver",
+        "type": "influxdb",
+        "hostname": "us-east-1-1.aws.cloud2.influxdata.com",
+        "port": "443",
+        "protocol": "https",
+        "database": "teste",
+        "name": "InfluxDB Cloud",
+        "usetls": true,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "https://us-east-1-1.aws.cloud2.influxdata.com/",
+        "timeout": "",
+        "rejectUnauthorized": false
+    }
+]
