@@ -1,108 +1,74 @@
-# Monitoramento Urbano com ESP32, Node-RED, InfluxDB e Grafana
+# Projeto IoT - Monitoramento de Fluxo Urbano com ESP32, MQTT, Node-RED e Grafana
 
-📌 Descrição do Projeto
+Este projeto visa simular um sistema de monitoramento de fluxo urbano utilizando microcontroladores ESP32 e sensores, com envio de dados para um dashboard em tempo real via Node-RED, InfluxDB e Grafana.
 
-Este projeto tem como objetivo monitorar o fluxo urbano utilizando microcontroladores ESP32 com sensores (ultrassônico e infravermelho) e enviar os dados para uma infraestrutura em nuvem composta por Node-RED, InfluxDB e Grafana. A proposta é auxiliar planos diretores urbanos por meio da coleta e análise de dados sobre a movimentação em determinados pontos da cidade.
+---
 
-⚙️ Tecnologias Utilizadas
+## 🔧 Tecnologias Utilizadas
 
-ESP32 DevKit V4
+- **ESP32 (simulado no Wokwi)**
+- **Sensor Ultrassônico HC-SR04**
+- **Sensor PIR (Infravermelho)**
+- **MQTT (Broker: HiveMQ)**
+- **Node-RED**
+- **InfluxDB Cloud**
+- **Grafana**
 
-Sensor Ultrassônico HC-SR04
+---
 
-Sensor PIR (Infravermelho)
+## 📡 Funcionamento
 
-Node-RED (EC2 AWS)
+1. **Coleta de Dados**  
+   O ESP32 coleta:
+   - A distância de objetos através do sensor HC-SR04
+   - A contagem de passagens com sensor PIR
 
-Broker MQTT público (HiveMQ)
+2. **Publicação MQTT**  
+   Os dados são publicados no broker HiveMQ nos tópicos:
+   ```
+   TESTMACK1870/estacao1/resumo
+   ```
+   Com payload JSON:
+   ```json
+   {
+     "distancia": 120,
+     "passagens": 4,
+     "estacao": "estacao1",
+     "rota": "leste"
+   }
+   ```
 
-InfluxDB Cloud
+3. **Node-RED**  
+   - Recebe os dados via `mqtt in`
+   - Processa os dados com uma `function node`
+   - Envia para o InfluxDB com as medições `distancia` e `passagens`, adicionando tags `estacao` e `rota`
 
-Grafana Cloud
+4. **Armazenamento**  
+   Dados enviados para:
+   - Bucket: `Projeto`
+   - Tags: `estacao`, `rota`
+   - Campos: `value`
 
-🧩 Estrutura do Projeto
+5. **Visualização (Grafana)**  
+   Dashboards com:
+   - Gráfico de linha para distância ao longo do tempo
+   - Contador acumulado de passagens
+   - Filtros por estação e rota
 
-Cada ESP32 representa uma "estação" urbana.
+---
 
-Os sensores coletam os dados de distância e passagem de pessoas.
+## 📂 Organização do Repositório
 
-Os dados são publicados via MQTT no formato JSON:
+- `/esp32/`: Código Arduino para ESP32
+- `/node-red/`: Fluxo exportado da interface Node-RED (.json)
+- `/grafana/`: Exemplos de painéis e queries
 
-{
-  "distancia": 125.5,
-  "passagens": 3,
-  "estacao": "estacao1",
-  "rota": "centro-norte"
-}
+---
 
-O Node-RED recebe e separa os dados por tipo e envia para o InfluxDB com os campos e tags apropriados.
+## ✅ Status
 
-O Grafana consulta os dados do InfluxDB e exibe dashboards dinâmicos.
+Projeto finalizado com simulações no ambiente Wokwi e dashboards operando em tempo real com Grafana.
 
-🚀 Como Executar o Projeto
+---
 
-ESP32 (Wokwi ou Físico)
-
-Configure o código com as credenciais MQTT e Wi-Fi.
-
-Publique os dados no tópico: TESTMACK1870/<estacao>/resumo
-
-Node-RED
-
-Conecte ao broker HiveMQ (broker.hivemq.com:1883)
-
-Use um mqtt in com tópico: TESTMACK1870/+/resumo
-
-A função deve processar o JSON e criar duas saídas (distância e passagens), cada uma com:
-
-measurement: distancia ou passagens
-
-field: value
-
-tags: estacao, rota
-
-Utilize dois nós influxdb out, apontando para o bucket Projeto no InfluxDB Cloud.
-
-InfluxDB
-
-Bucket: Projeto
-
-Measurements: distancia, passagens
-
-Campos: value
-
-Tags: estacao, rota
-
-Grafana
-
-Configure o InfluxDB Cloud como fonte de dados
-
-Crie os seguintes painéis:
-
-Gauge: Passagens por estação (últimos 5 minutos)
-
-Line Chart: Distância detectada ao longo do tempo
-
-Bar Chart: Comparativo de passagens por rota
-
-📊 Exemplo de Query (Flux)
-
-from(bucket: "Projeto")
-  |> range(start: -1h)
-  |> filter(fn: (r) => r._measurement == "distancia" and r._field == "value" and r.estacao == "estacao1")
-
-📎 Requisitos de Funcionalidade
-
-Conexão Wi-Fi do ESP32
-
-Comunicação com o broker MQTT
-
-Leitura de sensores ultrassônico e PIR
-
-Publicação em JSON com identificação da estação
-
-Processamento no Node-RED
-
-Armazenamento no InfluxDB com registros temporais
-
-Visualização no Grafana
+Mackenzie - Projeto de IoT - Sistemas de Informação
