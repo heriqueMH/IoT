@@ -1,15 +1,15 @@
 [
     {
-        "id": "0c4a26f49b5eba74",
+        "id": "7b71b4e11208815a",
         "type": "tab",
         "label": "Monitoramento ESP32",
         "disabled": false,
         "info": ""
     },
     {
-        "id": "52da70e676f93f2f",
+        "id": "16f02604329e26d9",
         "type": "mqtt in",
-        "z": "0c4a26f49b5eba74",
+        "z": "7b71b4e11208815a",
         "name": "Recebe dados ESP32",
         "topic": "TESTMACK1870/+/+",
         "qos": "2",
@@ -18,73 +18,40 @@
         "nl": false,
         "rap": false,
         "inputs": 0,
-        "x": 360,
-        "y": 240,
+        "x": 300,
+        "y": 260,
         "wires": [
             [
-                "c2bb0559d6532016"
+                "2937cf4fd217fc02",
+                "3aac68afdd58fc06"
             ]
         ]
     },
     {
-        "id": "c2bb0559d6532016",
+        "id": "2937cf4fd217fc02",
         "type": "function",
-        "z": "0c4a26f49b5eba74",
+        "z": "7b71b4e11208815a",
         "name": "Extrair e formatar dados",
-        "func": "let dados = (typeof msg.payload === \"string\") ? JSON.parse(msg.payload) : msg.payload;\n\nlet estacao = dados.estacao || \"estacao1\";\nlet rota = dados.rota || \"rota-desconhecida\";\n\n// Criar duas mensagens: uma para distância, uma para passagens\nlet msgDistancia = {\n  measurement: \"distancia\",\n  payload: {\n    value: parseFloat(dados.distancia)\n  },\n  tags: {\n    estacao: estacao,\n    rota: rota\n  }\n};\n\nlet msgPassagens = {\n  measurement: \"passagens\",\n  payload: {\n    value: parseInt(dados.passagens)\n  },\n  tags: {\n    estacao: estacao,\n    rota: rota\n  }\n};\n\n// Retorna como array para dois outputs\nreturn [msgDistancia, msgPassagens];\n",
+        "func": "let dados = (typeof msg.payload === \"string\") ? JSON.parse(msg.payload) : msg.payload;\n\nmsg.payload = {\n  value: Number(dados.distancia ?? 0)\n};\n\nmsg.measurement = \"distancia\";\nmsg.tags = {\n  estacao: String(dados.estacao || \"desconhecida\"),\n  rota: String(dados.rota || \"sem-rota\")\n};\n\nnode.warn(\"Distância enviada: \" + msg.payload.value);\nreturn msg;\n",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 620,
-        "y": 240,
+        "x": 610,
+        "y": 220,
         "wires": [
             [
-                "7253931eb05e2308"
+                "552395ca8e0bdd4b",
+                "7a0b3553920866e5"
             ]
         ]
     },
     {
-        "id": "7253931eb05e2308",
-        "type": "switch",
-        "z": "0c4a26f49b5eba74",
-        "name": "Separar por tipo",
-        "property": "measurement",
-        "propertyType": "msg",
-        "rules": [
-            {
-                "t": "eq",
-                "v": "distancia",
-                "vt": "str"
-            },
-            {
-                "t": "eq",
-                "v": "passagens",
-                "vt": "str"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 2,
-        "x": 870,
-        "y": 240,
-        "wires": [
-            [
-                "557b69a42fe3ac51",
-                "0a3ee7b43b30f090"
-            ],
-            [
-                "226cbe51e845764d",
-                "44477de7f9757329"
-            ]
-        ]
-    },
-    {
-        "id": "557b69a42fe3ac51",
+        "id": "7a0b3553920866e5",
         "type": "debug",
-        "z": "0c4a26f49b5eba74",
+        "z": "7b71b4e11208815a",
         "name": "Debug Distância",
         "active": true,
         "tosidebar": true,
@@ -99,9 +66,9 @@
         "wires": []
     },
     {
-        "id": "226cbe51e845764d",
+        "id": "f91f62b301356b17",
         "type": "debug",
-        "z": "0c4a26f49b5eba74",
+        "z": "7b71b4e11208815a",
         "name": "Debug Passagens",
         "active": true,
         "tosidebar": true,
@@ -116,9 +83,9 @@
         "wires": []
     },
     {
-        "id": "0a3ee7b43b30f090",
+        "id": "552395ca8e0bdd4b",
         "type": "influxdb out",
-        "z": "0c4a26f49b5eba74",
+        "z": "7b71b4e11208815a",
         "influxdb": "a1influxserver",
         "name": "Distancia",
         "measurement": "",
@@ -134,9 +101,9 @@
         "wires": []
     },
     {
-        "id": "44477de7f9757329",
+        "id": "1f2d71ea773768cd",
         "type": "influxdb out",
-        "z": "0c4a26f49b5eba74",
+        "z": "7b71b4e11208815a",
         "influxdb": "a1influxserver",
         "name": "Passagens",
         "measurement": "",
@@ -150,6 +117,68 @@
         "x": 1130,
         "y": 400,
         "wires": []
+    },
+    {
+        "id": "3aac68afdd58fc06",
+        "type": "function",
+        "z": "7b71b4e11208815a",
+        "name": "Extrair e formatar dados",
+        "func": "let dados = (typeof msg.payload === \"string\") ? JSON.parse(msg.payload) : msg.payload;\n\nmsg.payload = {\n  value: Number(dados.passagens ?? 0)\n};\n\nmsg.measurement = \"passagens\";\nmsg.tags = {\n  estacao: String(dados.estacao || \"desconhecida\"),\n  rota: String(dados.rota || \"sem-rota\")\n};\n\nnode.warn(\"Passagens enviadas: \" + msg.payload.value);\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 300,
+        "wires": [
+            [
+                "f91f62b301356b17",
+                "1f2d71ea773768cd",
+                "d2ccdd6ce1d1eae7"
+            ]
+        ]
+    },
+    {
+        "id": "d2ccdd6ce1d1eae7",
+        "type": "function",
+        "z": "7b71b4e11208815a",
+        "name": "Trata mensagem",
+        "func": "var qtd = Number(msg.payload.passagens);\n\nif (qtd < 100) {\n    msg.payload = \"⚠️ Apenas \" + qtd + \" passagens registradas. Recomendamos utilizar a rota alternativa B.\";\n    msg.text = msg.payload; // compatível com serviços que usam msg.text\n    return msg;\n}\n\nreturn null; // não envia nada se não atingir a condição",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 810,
+        "y": 400,
+        "wires": [
+            [
+                "207d1b955b4eab0e"
+            ]
+        ]
+    },
+    {
+        "id": "207d1b955b4eab0e",
+        "type": "node-red-contrib-whatsapp-cmb-send-message",
+        "z": "7b71b4e11208815a",
+        "name": "",
+        "credtype": "account",
+        "account": "a67426a4e7e14110",
+        "text": "payload",
+        "phonenumbervalue": "",
+        "apikeyvalue": "",
+        "apikeyinputtypemessage": "msg",
+        "phonenumberinputtypemessage": "msg",
+        "inputtypemessage": "msg",
+        "rejectssl": false,
+        "x": 1000,
+        "y": 480,
+        "wires": [
+            []
+        ]
     },
     {
         "id": "a88e9b92f8dbdd0d",
@@ -196,5 +225,10 @@
         "url": "https://us-east-1-1.aws.cloud2.influxdata.com/",
         "timeout": "",
         "rejectUnauthorized": false
+    },
+    {
+        "id": "a67426a4e7e14110",
+        "type": "node-red-contrib-whatsapp-cmb-account",
+        "name": "Meu biriri"
     }
 ]
