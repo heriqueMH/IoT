@@ -9,7 +9,7 @@ const char* ssid = "Wokwi-GUEST";
 const char* password = "";
 
 const char* mqtt_server = "broker.hivemq.com";
-const char* mqtt_topic = "TESTMACK1870/estacao1/resumo";
+const char* mqtt_topic = "TESTMACK1870/estacao1/resumo";  // Envia como JSON cru
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -38,11 +38,12 @@ void setup() {
   pinMode(PIR_PIN, INPUT);
 
   WiFi.begin(ssid, password);
+  Serial.print("Conectando ao Wi-Fi");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("Wi-Fi conectado");
+  Serial.println("\nWi-Fi conectado");
 
   client.setServer(mqtt_server, 1883);
 }
@@ -53,7 +54,7 @@ void loop() {
   }
   client.loop();
 
-  // Medição ultrassônica
+  // Sensor ultrassônico
   digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
   digitalWrite(TRIG_PIN, HIGH);
@@ -62,7 +63,7 @@ void loop() {
   long duracao = pulseIn(ECHO_PIN, HIGH);
   float distancia = duracao * 0.034 / 2;
 
-  // Contagem com sensor PIR
+  // Sensor PIR
   int movimento = digitalRead(PIR_PIN);
   if (movimento == HIGH && !movimentoAnterior) {
     contadorPassagens++;
@@ -71,7 +72,7 @@ void loop() {
     movimentoAnterior = false;
   }
 
-  // JSON com estação, distância, passagens e rota
+  // Construção do JSON como string
   String payload = "{";
   payload += "\"estacao\":\"barueri\",";
   payload += "\"distancia\":" + String(distancia, 2) + ",";
@@ -79,7 +80,7 @@ void loop() {
   payload += "\"rota\":\"linha-diamante\"";
   payload += "}";
 
-  client.publish(mqtt_topic, payload.c_str());
+  client.publish(mqtt_topic, payload.c_str());  // ENVIA JSON como TEXTO
   Serial.println("Publicado: " + payload);
 
   delay(2000);
