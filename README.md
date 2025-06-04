@@ -59,7 +59,7 @@ Este projeto visa simular um sistema de monitoramento de fluxo urbano utilizando
 
 ## 📂 Organização do Repositório
 
-- `/esp32/`: Código Arduino para ESP32
+- `/Wokwi/.ino`: Código Arduino para ESP32
 - `/node-red/`: Fluxo exportado da interface Node-RED (.json)
 - `/grafana/`: Exemplos de painéis e queries
 
